@@ -17,6 +17,9 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
 ## Render
 - **Ratas con `SpriteManager`** — dibuja miles de sprites animados en un solo draw call; el
   GIF se convierte a spritesheet y se reproduce frame por frame, fiel al meme.
+- **Spritesheet generado con `tools/gif_to_spritesheet.py` (Python + Pillow)** — conversión
+  reproducible que además limpia el chroma key verde que trae el GIF; celdas de 128 px
+  (suficiente para el look PS1 y textura de 1664², liviana).
 - **Tinte y tamaño por sprite** — `sprite.color` y `sprite.size` dan variedad de ratas con un solo asset.
 - **Look PS1 por render a baja resolución** — `engine.setHardwareScalingLevel(n)` + texturas
   con filtrado `NEAREST`; auténtico y prácticamente gratis.

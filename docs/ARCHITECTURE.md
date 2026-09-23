@@ -30,8 +30,8 @@ src/
     waves.ts         # composición de cada oleada
   save/
     storage.ts       # dinero y desbloqueos en localStorage (con versión)
-public/
-  assets/            # spritesheets, texturas, audio
+  assets/            # spritesheets, texturas, audio (importados desde el código → URL con hash)
+tools/               # scripts locales de preparación de assets (no forman parte del juego)
 ```
 Las carpetas se crean cuando hacen falta, no antes.
 

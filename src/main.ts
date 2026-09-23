@@ -3,6 +3,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { createEnvironment } from "./scene/environment";
 import { PlayerView } from "./systems/PlayerView";
+import { RatSystem } from "./systems/RatSystem";
 
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 const clickToPlay = document.getElementById("clickToPlay") as HTMLDivElement;
@@ -14,8 +15,14 @@ scene.clearColor = new Color4(0.08, 0.05, 0.12, 1);
 
 createEnvironment(scene);
 new PlayerView(scene, canvas, (locked) => clickToPlay.classList.toggle("hidden", locked));
+const rats = new RatSystem(scene);
 
-engine.runRenderLoop(() => scene.render());
+engine.runRenderLoop(() => {
+  // getDeltaTime(): ms desde el frame anterior; lo acotamos para evitar saltos tras cambiar de pestaña.
+  const dt = Math.min(engine.getDeltaTime() / 1000, 0.1);
+  rats.update(dt);
+  scene.render();
+});
 window.addEventListener("resize", () => engine.resize());
 
 if (import.meta.env.DEV) {

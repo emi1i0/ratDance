@@ -13,6 +13,7 @@ FPS estacionario de oleadas para navegador: ratas bailarinas (meme) atacan desde
 - `npm run build` — typecheck + build de producción
 - `npm run preview` — servir el build
 - `npm run typecheck` — solo chequeo de tipos
+- `python tools/gif_to_spritesheet.py <in.gif> <out.png> [celda]` — GIF → spritesheet (requiere Pillow; herramienta local, no del juego)
 
 ## Reglas
 - No agregar dependencias sin preguntar al usuario.
