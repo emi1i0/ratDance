@@ -6,7 +6,7 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
   pointer lock por click y mirada 360° con el mouse.
 - [x] **2. Una rata** — sprite animado que aparece lejos y camina hacia el jugador
   (ya usa el spritesheet real del meme; al llegar reaparece en otro ángulo, temporal).
-- [ ] **3. Disparar** — click dispara un proyectil placeholder; al impactar, la rata muere.
+- [x] **3. Disparar** — click dispara un proyectil placeholder; al impactar, la rata muere.
 - [ ] **4. Oleada y muerte** — ratas aparecen en 360°; el jugador tiene vida, recibe daño y
   hay game over con reintento.
 - [ ] **5. HUD** — vida, número de oleada y dinero en overlay HTML.
@@ -16,7 +16,7 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
 - [ ] **8. Perks** — al terminar cada oleada, elegir 1 de 3 perks; se pierden al morir.
 - [ ] **9. Meta-progresión** — dinero persistente en `localStorage`, tienda y selección de
   personaje/arma (placeholders).
-- [ ] **10. Sprite del meme** — spritesheet real de la rata bailando, fiel al GIF.
+- [x] **10. Sprite del meme** — spritesheet real de la rata bailando, fiel al GIF.
 - [ ] **11. Look PS1 + alacena discoteca** — baja resolución, props low-poly (queso, comida
   mordida), luces de colores que cambian.
 

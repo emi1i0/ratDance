@@ -13,10 +13,34 @@
         pointer-events: none;
       }
       #clickToPlay.hidden { display: none; }
+      #crosshair {
+        position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px;
+        background: #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000; pointer-events: none;
+      }
+      /* Hitmarker: "X" de 4 rayitas alrededor de la mira, visible ~150 ms en cada impacto. */
+      #hitmarker {
+        position: fixed; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px;
+        pointer-events: none; opacity: 0;
+      }
+      #hitmarker::before, #hitmarker::after {
+        content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px;
+        /* Dos tramos con hueco en el medio para no tapar la mira. */
+        background: linear-gradient(#fff 0 35%, transparent 35% 65%, #fff 65% 100%);
+        filter: drop-shadow(0 0 1px #000);
+      }
+      #hitmarker::before { transform: rotate(45deg); }
+      #hitmarker::after { transform: rotate(-45deg); }
+      #hitmarker.show { animation: hitmarker 150ms ease-out; }
+      @keyframes hitmarker {
+        from { opacity: 1; transform: scale(1.3); }
+        to { opacity: 0; transform: scale(1); }
+      }
     </style>
   </head>
   <body>
     <canvas id="renderCanvas"></canvas>
+    <div id="crosshair"></div>
+    <div id="hitmarker"></div>
     <div id="clickToPlay">Click para jugar</div>
     <script type="module" src="/src/main.ts"></script>
   </body>

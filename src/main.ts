@@ -4,6 +4,8 @@ import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { createEnvironment } from "./scene/environment";
 import { PlayerView } from "./systems/PlayerView";
 import { RatSystem } from "./systems/RatSystem";
+import { WeaponSystem } from "./systems/WeaponSystem";
+import { HitEffects } from "./systems/HitEffects";
 
 const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
 const clickToPlay = document.getElementById("clickToPlay") as HTMLDivElement;
@@ -14,13 +16,17 @@ const scene = new Scene(engine);
 scene.clearColor = new Color4(0.08, 0.05, 0.12, 1);
 
 createEnvironment(scene);
-new PlayerView(scene, canvas, (locked) => clickToPlay.classList.toggle("hidden", locked));
+const player = new PlayerView(scene, canvas, (locked) => clickToPlay.classList.toggle("hidden", locked));
 const rats = new RatSystem(scene);
+const effects = new HitEffects(scene, document.getElementById("hitmarker") as HTMLDivElement);
+const weapons = new WeaponSystem(scene, player, rats, effects, canvas);
 
 engine.runRenderLoop(() => {
   // getDeltaTime(): ms desde el frame anterior; lo acotamos para evitar saltos tras cambiar de pestaña.
   const dt = Math.min(engine.getDeltaTime() / 1000, 0.1);
   rats.update(dt);
+  weapons.update(dt);
+  effects.update(dt);
   scene.render();
 });
 window.addEventListener("resize", () => engine.resize());
