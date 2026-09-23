@@ -1,0 +1,20 @@
+{
+  "name": "ratdance",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^9.27.1"
+  },
+  "devDependencies": {
+    "@babylonjs/inspector": "^9.27.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}
