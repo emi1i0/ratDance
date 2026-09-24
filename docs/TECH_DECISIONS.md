@@ -31,7 +31,13 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
 
 ## UI
 - **HUD y menús en HTML/CSS sobre el canvas** — familiar, rápido de iterar y no suma
-  `@babylonjs/gui` como dependencia.
+  `@babylonjs/gui` como dependencia. Estilos en `src/style.css`.
+- **Sin librería de UI** — las de componentes (HeroUI y similares) son para apps; las retro
+  (NES.css, PSone.css) no calzan con el estilo y están abandonadas. CSS propio.
+- **Fuentes guardadas en el repo** (`src/assets/fonts/`, OFL): Press Start 2P para el HUD (dígitos claros) y
+  Monoton para carteles; ~29 KB, sin pedidos a Google en runtime.
+- **Estilo de HUD "mezcla"** — base PS1 quieta y legible; el caos (neón, tambaleo, colores
+  que ciclan) solo en cartel de oleada, daño y game over. Respeta `prefers-reduced-motion`.
 
 ## Audio
 - **Motor de audio de Babylon (incluido en `@babylonjs/core`)** — sin dependencias extra;

@@ -1,27 +1,47 @@
 import type { RatSystem } from "./RatSystem";
 
-// Oleada única y continua: cada rata aparece un poco antes que la anterior.
-// (Las oleadas por datos llegan en el hito 6.)
-const START_INTERVAL = 2; // segundos entre ratas al empezar
-const MIN_INTERVAL = 0.4;
-const INTERVAL_DECAY = 0.96; // cada spawn multiplica el intervalo por esto
+// Oleadas numeradas con fórmula simple (en el hito 6 pasan a datos en src/data/waves.ts).
+const BREAK_TIME = 3; // segundos de respiro entre oleadas
+
+const ratsInWave = (wave: number) => 4 + wave * 3;
+const spawnInterval = (wave: number) => Math.max(0.4, 1.6 * 0.9 ** (wave - 1)); // segundos
 
 export class WaveSystem {
-  private interval = START_INTERVAL;
-  private timer = 0;
+  wave = 0;
+  private toSpawn = 0;
+  private spawnTimer = 0;
+  private breakTimer = 0;
 
-  constructor(private rats: RatSystem) {}
+  constructor(private rats: RatSystem, private onWaveStart: (wave: number) => void) {}
 
   update(dt: number): void {
-    this.timer -= dt;
-    if (this.timer > 0) return;
-    this.rats.spawn();
-    this.interval = Math.max(MIN_INTERVAL, this.interval * INTERVAL_DECAY);
-    this.timer = this.interval;
+    if (this.breakTimer > 0) {
+      this.breakTimer -= dt;
+      if (this.breakTimer <= 0) this.startWave(this.wave + 1);
+      return;
+    }
+
+    if (this.toSpawn > 0) {
+      this.spawnTimer -= dt;
+      if (this.spawnTimer <= 0) {
+        this.rats.spawn();
+        this.toSpawn--;
+        this.spawnTimer = spawnInterval(this.wave);
+      }
+    } else if (this.rats.rats.length === 0) {
+      this.breakTimer = BREAK_TIME; // oleada limpia
+    }
   }
 
   reset(): void {
-    this.interval = START_INTERVAL;
-    this.timer = 0;
+    this.breakTimer = 0;
+    this.startWave(1);
+  }
+
+  private startWave(wave: number): void {
+    this.wave = wave;
+    this.toSpawn = ratsInWave(wave);
+    this.spawnTimer = 0;
+    this.onWaveStart(wave);
   }
 }

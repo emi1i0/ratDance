@@ -14,6 +14,7 @@ const FEET_RATIO = 0.97; // los pies están al 97% de la altura del frame
 const RAT_SIZE = 2;
 const RAT_SPEED = 3; // unidades por segundo
 const RAT_DAMAGE_PER_SECOND = 10;
+const RAT_REWARD = 1; // dinero por rata muerta
 const SPAWN_DISTANCE = 25;
 const REACH_DISTANCE = 1.5; // a esta distancia la rata se queda bailando y hace daño
 const MAX_RATS = 200;
@@ -26,6 +27,7 @@ export const RAT_HIT_HEIGHT = RAT_SIZE * 0.9;
 export class RatSystem {
   readonly rats: Sprite[] = [];
   kills = 0;
+  money = 0; // ganado en esta partida
   private manager: SpriteManager;
 
   constructor(scene: Scene) {
@@ -71,11 +73,13 @@ export class RatSystem {
     rat.dispose();
     this.rats.splice(this.rats.indexOf(rat), 1);
     this.kills++;
+    this.money += RAT_REWARD;
   }
 
   clear(): void {
     for (const rat of this.rats) rat.dispose();
     this.rats.length = 0;
     this.kills = 0;
+    this.money = 0;
   }
 }

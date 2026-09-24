@@ -4,49 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ratDance</title>
-    <style>
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
-      #renderCanvas { width: 100%; height: 100%; display: block; outline: none; }
-      #overlay {
-        position: fixed; inset: 0; display: flex; flex-direction: column; gap: 12px;
-        align-items: center; justify-content: center; text-align: center;
-        color: #fff; font: bold 32px monospace; background: rgba(0, 0, 0, 0.5);
-        pointer-events: none;
-      }
-      #overlay small { font-size: 18px; font-weight: normal; }
-      #overlay.hidden { display: none; }
-      /* Bordes rojos al recibir daño; la opacidad la maneja Game.ts. */
-      #damage {
-        position: fixed; inset: 0; pointer-events: none; opacity: 0;
-        background: radial-gradient(ellipse at center, transparent 45%, rgba(220, 0, 0, 0.85) 100%);
-      }
-      #crosshair {
-        position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px;
-        background: #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000; pointer-events: none;
-      }
-      /* Hitmarker: "X" de 4 rayitas alrededor de la mira, visible ~150 ms en cada impacto. */
-      #hitmarker {
-        position: fixed; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px;
-        pointer-events: none; opacity: 0;
-      }
-      #hitmarker::before, #hitmarker::after {
-        content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px;
-        /* Dos tramos con hueco en el medio para no tapar la mira. */
-        background: linear-gradient(#fff 0 35%, transparent 35% 65%, #fff 65% 100%);
-        filter: drop-shadow(0 0 1px #000);
-      }
-      #hitmarker::before { transform: rotate(45deg); }
-      #hitmarker::after { transform: rotate(-45deg); }
-      #hitmarker.show { animation: hitmarker 150ms ease-out; }
-      @keyframes hitmarker {
-        from { opacity: 1; transform: scale(1.3); }
-        to { opacity: 0; transform: scale(1); }
-      }
-    </style>
   </head>
   <body>
     <canvas id="renderCanvas"></canvas>
     <div id="damage"></div>
+    <div id="hud">
+      <div class="wave panel"></div>
+      <div class="money panel"></div>
+      <div class="health">
+        <div class="cheese">
+          <div class="cheese-ghost"></div>
+          <div class="cheese-fill"></div>
+        </div>
+        <span class="health-text"></span>
+      </div>
+      <div class="banner sign"></div>
+    </div>
     <div id="crosshair"></div>
     <div id="hitmarker"></div>
     <div id="overlay"></div>

@@ -1,3 +1,4 @@
+import "./style.css";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
@@ -16,6 +17,7 @@ const game = new Game(scene, canvas, {
   overlay: document.getElementById("overlay") as HTMLDivElement,
   damage: document.getElementById("damage") as HTMLDivElement,
   hitmarker: document.getElementById("hitmarker") as HTMLDivElement,
+  hud: document.getElementById("hud") as HTMLDivElement,
 });
 
 engine.runRenderLoop(() => {

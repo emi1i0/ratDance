@@ -1,0 +1,314 @@
+/* Fuentes guardadas en el repo (licencia OFL): Press Start 2P para el HUD, Monoton para carteles. */
+@font-face {
+  font-family: "Press Start 2P";
+  font-weight: 400;
+  font-display: block;
+  src: url("./assets/fonts/press-start-2p-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Monoton";
+  font-weight: 400;
+  font-display: block;
+  src: url("./assets/fonts/monoton-400.woff2") format("woff2");
+}
+
+:root {
+  --cheese: #ffc93c;
+  --cheese-rind: #e0901f;
+  --cheese-hole: #b8740f;
+  --rat-pink: #ff8fb1;
+  --plum: #2a1633;
+  --ink: #000;
+  --disco-magenta: #ff2bd6;
+  --disco-cyan: #2ef2ff;
+  --hard-shadow: 4px 4px 0 var(--ink);
+  --font-hud: "Press Start 2P", monospace;
+  --font-sign: "Monoton", "Press Start 2P", sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+#renderCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+
+/* ---------- Mira y hitmarker ---------- */
+
+#crosshair {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--ink);
+  pointer-events: none;
+}
+
+/* "X" de 4 rayitas alrededor de la mira, visible ~150 ms en cada impacto. */
+#hitmarker {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  pointer-events: none;
+  opacity: 0;
+}
+#hitmarker::before,
+#hitmarker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  margin-left: -1px;
+  /* Dos tramos con hueco en el medio para no tapar la mira. */
+  background: linear-gradient(#fff 0 35%, transparent 35% 65%, #fff 65% 100%);
+  filter: drop-shadow(0 0 1px var(--ink));
+}
+#hitmarker::before { transform: rotate(45deg); }
+#hitmarker::after { transform: rotate(-45deg); }
+#hitmarker.show { animation: hitmarker 150ms ease-out; }
+@keyframes hitmarker {
+  from { opacity: 1; transform: scale(1.3); }
+  to { opacity: 0; transform: scale(1); }
+}
+
+/* Bordes rojos al recibir daño; la opacidad la maneja Game.ts. */
+#damage {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(220, 0, 0, 0.85) 100%);
+}
+
+/* ---------- HUD (base PS1: quieto y legible) ---------- */
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: #fff;
+  font: 400 16px/1 var(--font-hud);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+#hud > * { position: absolute; }
+
+.panel {
+  background: color-mix(in srgb, var(--plum) 85%, transparent);
+  border: 3px solid var(--ink);
+  box-shadow: var(--hard-shadow);
+  padding: 8px 12px;
+}
+
+#hud .wave {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#hud .money {
+  top: 16px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cheese);
+}
+/* Cuña de queso como ícono de moneda. */
+#hud .money::before {
+  content: "";
+  width: 28px;
+  height: 22px;
+  background:
+    radial-gradient(circle at 62% 62%, var(--cheese-hole) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 34% 84%, var(--cheese-hole) 0 2.5px, transparent 3px),
+    radial-gradient(circle at 84% 34%, var(--cheese-hole) 0 2px, transparent 2.5px),
+    var(--cheese);
+  clip-path: polygon(0 100%, 100% 100%, 100% 10%);
+  filter: drop-shadow(2px 2px 0 var(--ink));
+}
+#hud .money.bump { animation: bump 220ms ease-out; }
+@keyframes bump {
+  40% { transform: scale(1.25) rotate(-4deg); }
+}
+
+#hud .health {
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* La barra de vida es un queso: agujeros fijos y un borde mordisqueado al final. */
+.cheese {
+  position: relative;
+  width: 280px;
+  height: 30px;
+  background: var(--plum);
+  border: 3px solid var(--ink);
+  box-shadow: var(--hard-shadow);
+}
+.cheese-fill,
+.cheese-ghost {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+}
+/* Rastro rosa del daño recién recibido: se achica con retraso. */
+.cheese-ghost {
+  background: var(--rat-pink);
+  transition: width 400ms ease-in 250ms;
+}
+.cheese-fill {
+  background:
+    radial-gradient(circle at 20px 10px, var(--cheese-hole) 0 5px, transparent 5.5px),
+    radial-gradient(circle at 54px 20px, var(--cheese-hole) 0 6px, transparent 6.5px),
+    radial-gradient(circle at 92px 8px, var(--cheese-hole) 0 3.5px, transparent 4px),
+    radial-gradient(circle at 126px 19px, var(--cheese-hole) 0 5px, transparent 5.5px),
+    radial-gradient(circle at 168px 9px, var(--cheese-hole) 0 4.5px, transparent 5px),
+    radial-gradient(circle at 205px 21px, var(--cheese-hole) 0 3.5px, transparent 4px),
+    radial-gradient(circle at 244px 11px, var(--cheese-hole) 0 6px, transparent 6.5px),
+    linear-gradient(var(--cheese) 72%, var(--cheese-rind) 72%);
+  /* Mordiscos: semicírculos recortados en el borde derecho. */
+  -webkit-mask:
+    radial-gradient(circle 8px at 100% 50%, transparent 97%, #000) right / 14px 15px repeat-y,
+    linear-gradient(#000, #000) left / calc(100% - 7px) 100% no-repeat;
+  mask:
+    radial-gradient(circle 8px at 100% 50%, transparent 97%, #000) right / 14px 15px repeat-y,
+    linear-gradient(#000, #000) left / calc(100% - 7px) 100% no-repeat;
+  transition: width 100ms linear;
+}
+.health-text {
+  min-width: 3ch;
+  font-size: 20px;
+}
+#hud .health.low .health-text {
+  color: var(--rat-pink);
+  animation: low-pulse 600ms steps(2) infinite;
+}
+@keyframes low-pulse {
+  50% { opacity: 0.35; }
+}
+
+/* ---------- Momentos caóticos ---------- */
+
+/* Cartel de oleada: neón de discoteca con aberración cromática y tambaleo. */
+.sign {
+  font-family: var(--font-sign);
+  font-weight: 400;
+  color: #fff;
+  text-shadow:
+    -4px 0 var(--disco-magenta),
+    4px 0 var(--disco-cyan),
+    0 0 24px var(--disco-magenta);
+  white-space: nowrap;
+}
+#hud .banner {
+  top: 26%;
+  left: 50%;
+  font-size: clamp(48px, 9vw, 112px);
+  opacity: 0;
+  transform: translateX(-50%);
+}
+#hud .banner.show { animation: banner 2.2s ease-out; }
+@keyframes banner {
+  0%   { opacity: 0; transform: translateX(-50%) scale(2.2) rotate(-8deg); filter: hue-rotate(0deg); }
+  12%  { opacity: 1; transform: translateX(-50%) scale(0.92) rotate(3deg); }
+  20%  { transform: translateX(-50%) scale(1.05) rotate(-2deg); }
+  28%  { transform: translateX(-50%) scale(1) rotate(1deg); }
+  70%  { opacity: 1; transform: translateX(-50%) scale(1) rotate(-1deg); filter: hue-rotate(300deg); }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.8) rotate(4deg); filter: hue-rotate(360deg); }
+}
+
+/* Mordida: el HUD entero tiembla. */
+#hud.hurt { animation: hurt 260ms steps(6); }
+@keyframes hurt {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-6px, 3px); }
+  40%  { transform: translate(5px, -4px); }
+  60%  { transform: translate(-4px, -2px); }
+  80%  { transform: translate(3px, 4px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ---------- Overlay: inicio, pausa y game over ---------- */
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  font: 400 14px/1.6 var(--font-hud);
+  text-shadow: 2px 2px 0 var(--ink);
+  background: color-mix(in srgb, var(--plum) 70%, transparent);
+  pointer-events: none;
+}
+#overlay.hidden { display: none; }
+#overlay h1 {
+  margin: 0;
+  word-spacing: 0.35em;
+  font-size: clamp(44px, 8vw, 96px);
+}
+#overlay p { margin: 0; }
+#overlay .hint { animation: low-pulse 1.2s steps(2) infinite; }
+
+/* Game over: el neón titila y se sacude. */
+#overlay[data-kind="gameOver"] h1 { animation: neon-fail 1.6s steps(1) infinite; }
+@keyframes neon-fail {
+  0%   { filter: none; transform: rotate(-2deg); }
+  30%  { filter: hue-rotate(120deg); transform: rotate(1deg) translateX(3px); }
+  34%  { opacity: 0.2; }
+  38%  { opacity: 1; filter: hue-rotate(200deg); }
+  70%  { filter: hue-rotate(280deg); transform: rotate(2deg) translateX(-3px); }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 8px 32px;
+  margin: 0;
+  padding: 16px 24px;
+  text-align: left;
+}
+.stats dt { color: var(--rat-pink); }
+.stats dd {
+  margin: 0;
+  text-align: right;
+  color: var(--cheese);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #hud.hurt,
+  #hud .money.bump,
+  #hud .health.low .health-text,
+  #overlay .hint,
+  #overlay[data-kind="gameOver"] h1 {
+    animation: none;
+  }
+  #hud .banner.show { animation: banner-calm 2.2s linear; }
+  @keyframes banner-calm {
+    0%, 80% { opacity: 1; transform: translateX(-50%); }
+    100% { opacity: 0; transform: translateX(-50%); }
+  }
+}

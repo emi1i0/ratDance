@@ -9,8 +9,9 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
 - [x] **3. Disparar** — click dispara un proyectil placeholder; al impactar, la rata muere.
 - [x] **4. Oleada y muerte** — ratas aparecen en 360°; el jugador tiene vida, recibe daño y
   hay game over con reintento.
-- [ ] **5. HUD** — vida, número de oleada y dinero en overlay HTML.
-- [ ] **6. Oleadas y bosses por datos** — `waves.ts` y `rats.ts`; tipos de rata por color,
+- [x] **5. HUD** — vida, número de oleada y dinero en overlay HTML (incluye oleadas numeradas
+  con fórmula simple y $1 por rata).
+- [ ] **6. Oleadas y bosses por datos** — pasar la fórmula de oleadas a `waves.ts` y `rats.ts`; tipos de rata por color,
   tamaño y stats; boss en oleadas 5 y 10; victoria al final.
 - [ ] **7. Audio** — música del meme en loop, disparo y chillido al morir.
 - [ ] **8. Perks** — al terminar cada oleada, elegir 1 de 3 perks; se pierden al morir.
