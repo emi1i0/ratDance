@@ -20,7 +20,7 @@ src/
     PerkSystem.ts    # perks activos de la partida y sus modificadores
     AudioSystem.ts   # música en loop + efectos
   ui/
-    hud.ts           # overlay HTML/CSS: vida, oleada, dinero
+    hud.ts           # overlay HTML/CSS: vida, oleada, queso
     screens.ts       # menú, elección de perk, game over, tienda (HTML)
   data/
     characters.ts    # stats de personajes
@@ -29,7 +29,7 @@ src/
     perks.ts         # definiciones de perks
     waves.ts         # composición de cada oleada
   save/
-    storage.ts       # dinero y desbloqueos en localStorage (con versión)
+    storage.ts       # queso y desbloqueos en localStorage (con versión)
   assets/            # spritesheets, texturas, audio (importados desde el código → URL con hash)
 tools/               # scripts locales de preparación de assets (no forman parte del juego)
 ```
@@ -42,7 +42,7 @@ Las carpetas se crean cuando hacen falta, no antes.
   (ej. `WeaponSystem` recibe `RatSystem` para consultar ratas vivas). Se pasan por constructor.
 - **Eventos** (`events.ts`) solo para avisos que interesan a varios sistemas sin que el
   emisor los conozca. Lista cerrada y tipada, por ejemplo:
-  - `ratKilled { type, position, reward }` → dinero, audio (chillido), HUD
+  - `ratKilled { type, position, reward }` → queso, audio (chillido), HUD
   - `playerDamaged { amount }` → HUD, audio
   - `waveCleared { index }` → Game (pasa a elección de perk)
   - `playerDied` → Game (pasa a game over)
@@ -64,8 +64,8 @@ Boot ──► Menu ──► Playing ◄──► Paused
 - **Playing**: oleadas activas; solo acá corre la simulación.
 - **Paused**: se entra al perder el pointer lock (Esc); click para volver.
 - **PerkChoice**: oleada terminada, elegir perk; simulación congelada.
-- **GameOver**: resumen, dinero ganado se guarda; ir a tienda o reintentar.
-- **Shop**: gastar dinero en personajes/armas.
+- **GameOver**: resumen, queso ganado se guarda; ir a tienda o reintentar.
+- **Shop**: gastar queso en personajes/armas.
 
 Implementación: un `state` string en `Game` + un `switch` en `update` y en las transiciones.
 Sin clases por estado hasta que haga falta.

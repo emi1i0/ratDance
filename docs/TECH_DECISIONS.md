@@ -44,7 +44,7 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
   se inicia después del primer click por la política de autoplay.
 
 ## Persistencia
-- **`localStorage` con clave versionada** — solo guardamos dinero y desbloqueos; no justifica backend.
+- **`localStorage` con clave versionada** — solo guardamos queso y desbloqueos; no justifica backend.
 
 ## Calidad
 - **`tsc --noEmit` como chequeo** — sin framework de tests por ahora; si la lógica de oleadas

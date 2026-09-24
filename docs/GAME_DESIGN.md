@@ -13,11 +13,11 @@ punto de ser molesto.
   meta-progresión con dinero.
 
 ## Loop
-1. **Menú / tienda** → elegir personaje y arma (desbloqueados con dinero).
-2. **Partida** → oleadas de ratas; matar ratas da dinero.
+1. **Menú / tienda** → elegir personaje y arma (desbloqueados con queso).
+2. **Partida** → oleadas de ratas; matar ratas da queso.
 3. **Entre oleadas** → elegir un perk (mejora incremental, dura solo esa partida).
 4. **Boss** en oleadas clave.
-5. **Muerte o victoria** → se pierden los perks, se conserva el dinero ganado.
+5. **Muerte o victoria** → se pierden los perks, se conserva el queso ganado.
 6. Volver a 1.
 
 Nivel por defecto (ajustable): **10 oleadas, boss en la 5 y en la 10**. Partidas cortas.
@@ -49,8 +49,9 @@ Nivel por defecto (ajustable): **10 oleadas, boss en la 5 y en la 10**. Partidas
 - Se pierden al morir.
 
 ### Meta-progresión
-- Lo único que persiste entre partidas es el **dinero**.
-- El dinero compra personajes y armas nuevos.
+- La moneda del juego es el **queso** (ícono: cuña de queso). Cada rata muerta da queso.
+- Lo único que persiste entre partidas es el **queso**.
+- El queso compra personajes y armas nuevos.
 
 ## Estilo
 - **Visual**: low-poly estética PS1, caótico. Una alacena con queso y comida mordisqueada,
