@@ -7,7 +7,7 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
 - [x] **2. Una rata** — sprite animado que aparece lejos y camina hacia el jugador
   (ya usa el spritesheet real del meme; al llegar reaparece en otro ángulo, temporal).
 - [x] **3. Disparar** — click dispara un proyectil placeholder; al impactar, la rata muere.
-- [ ] **4. Oleada y muerte** — ratas aparecen en 360°; el jugador tiene vida, recibe daño y
+- [x] **4. Oleada y muerte** — ratas aparecen en 360°; el jugador tiene vida, recibe daño y
   hay game over con reintento.
 - [ ] **5. HUD** — vida, número de oleada y dinero en overlay HTML.
 - [ ] **6. Oleadas y bosses por datos** — `waves.ts` y `rats.ts`; tipos de rata por color,

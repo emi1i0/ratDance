@@ -13,62 +13,69 @@ const FEET_RATIO = 0.97; // los pies están al 97% de la altura del frame
 
 const RAT_SIZE = 2;
 const RAT_SPEED = 3; // unidades por segundo
+const RAT_DAMAGE_PER_SECOND = 10;
 const SPAWN_DISTANCE = 25;
-const REACH_DISTANCE = 1.5;
-const RESPAWN_DELAY = 1; // segundos
+const REACH_DISTANCE = 1.5; // a esta distancia la rata se queda bailando y hace daño
+const MAX_RATS = 200;
 
 // Zona de impacto: cilindro vertical desde el piso (el sprite es más ancho que el cuerpo).
 export const RAT_HIT_RADIUS = RAT_SIZE * 0.25;
 export const RAT_HIT_HEIGHT = RAT_SIZE * 0.9;
 
-/** Por ahora: una sola rata que aparece lejos y camina hacia el jugador (en el origen). */
+/** Ratas que caminan hacia el jugador (en el origen) y le hacen daño al llegar. */
 export class RatSystem {
   readonly rats: Sprite[] = [];
+  kills = 0;
   private manager: SpriteManager;
-  private respawnTimer = 0;
 
   constructor(scene: Scene) {
     // SpriteManager: dibuja muchos sprites de un mismo spritesheet en un solo draw call.
-    this.manager = new SpriteManager("rats", ratSheetUrl, 200, CELL_SIZE, scene);
+    this.manager = new SpriteManager("rats", ratSheetUrl, MAX_RATS, CELL_SIZE, scene);
   }
 
-  update(dt: number): void {
-    if (this.rats.length === 0) {
-      this.respawnTimer -= dt;
-      if (this.respawnTimer <= 0) this.spawn();
-    }
-
+  /** Mueve las ratas y devuelve el daño total que le hicieron al jugador en este frame. */
+  update(dt: number): number {
+    let damage = 0;
     for (const rat of this.rats) {
       const pos = rat.position;
       const toPlayer = new Vector3(-pos.x, 0, -pos.z);
       const distance = toPlayer.length();
       if (distance <= REACH_DISTANCE) {
-        this.placeAtSpawn(rat); // temporal hasta que exista el daño al jugador (hito 4)
+        damage += RAT_DAMAGE_PER_SECOND * dt;
         continue;
       }
-      pos.addInPlace(toPlayer.scaleInPlace(Math.min(RAT_SPEED * dt, distance) / distance));
+      const step = Math.min(RAT_SPEED * dt, distance - REACH_DISTANCE);
+      pos.addInPlace(toPlayer.scaleInPlace(step / distance));
     }
+    return damage;
+  }
+
+  /** Crea una rata lejos, en un ángulo al azar alrededor del jugador. */
+  spawn(): void {
+    if (this.rats.length >= MAX_RATS) return;
+    const rat = new Sprite("rat", this.manager);
+    rat.size = RAT_SIZE;
+    // playAnimation(desde, hasta, loop, ms por frame): recorre las celdas del spritesheet.
+    // Arrancar en un frame al azar evita que todas bailen sincronizadas.
+    rat.playAnimation(0, FRAME_COUNT - 1, true, FRAME_MS);
+    rat.cellIndex = Math.floor(Math.random() * FRAME_COUNT);
+
+    const angle = Math.random() * Math.PI * 2;
+    // El sprite se posiciona por su centro: lo subimos para que los pies toquen el piso.
+    const y = RAT_SIZE * (FEET_RATIO - 0.5);
+    rat.position = new Vector3(Math.sin(angle) * SPAWN_DISTANCE, y, Math.cos(angle) * SPAWN_DISTANCE);
+    this.rats.push(rat);
   }
 
   kill(rat: Sprite): void {
     rat.dispose();
     this.rats.splice(this.rats.indexOf(rat), 1);
-    this.respawnTimer = RESPAWN_DELAY;
+    this.kills++;
   }
 
-  private spawn(): void {
-    const rat = new Sprite("rat", this.manager);
-    rat.size = RAT_SIZE;
-    // playAnimation(desde, hasta, loop, ms por frame): recorre las celdas del spritesheet.
-    rat.playAnimation(0, FRAME_COUNT - 1, true, FRAME_MS);
-    this.placeAtSpawn(rat);
-    this.rats.push(rat);
-  }
-
-  private placeAtSpawn(rat: Sprite): void {
-    const angle = Math.random() * Math.PI * 2;
-    // El sprite se posiciona por su centro: lo subimos para que los pies toquen el piso.
-    const y = RAT_SIZE * (FEET_RATIO - 0.5);
-    rat.position = new Vector3(Math.sin(angle) * SPAWN_DISTANCE, y, Math.cos(angle) * SPAWN_DISTANCE);
+  clear(): void {
+    for (const rat of this.rats) rat.dispose();
+    this.rats.length = 0;
+    this.kills = 0;
   }
 }

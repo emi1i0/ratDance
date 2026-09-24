@@ -7,12 +7,19 @@
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
       #renderCanvas { width: 100%; height: 100%; display: block; outline: none; }
-      #clickToPlay {
-        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      #overlay {
+        position: fixed; inset: 0; display: flex; flex-direction: column; gap: 12px;
+        align-items: center; justify-content: center; text-align: center;
         color: #fff; font: bold 32px monospace; background: rgba(0, 0, 0, 0.5);
         pointer-events: none;
       }
-      #clickToPlay.hidden { display: none; }
+      #overlay small { font-size: 18px; font-weight: normal; }
+      #overlay.hidden { display: none; }
+      /* Bordes rojos al recibir daño; la opacidad la maneja Game.ts. */
+      #damage {
+        position: fixed; inset: 0; pointer-events: none; opacity: 0;
+        background: radial-gradient(ellipse at center, transparent 45%, rgba(220, 0, 0, 0.85) 100%);
+      }
       #crosshair {
         position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px;
         background: #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000; pointer-events: none;
@@ -39,9 +46,10 @@
   </head>
   <body>
     <canvas id="renderCanvas"></canvas>
+    <div id="damage"></div>
     <div id="crosshair"></div>
     <div id="hitmarker"></div>
-    <div id="clickToPlay">Click para jugar</div>
+    <div id="overlay"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

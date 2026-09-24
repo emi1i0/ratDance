@@ -19,7 +19,8 @@ export class PlayerView {
     this.camera.inputs.clear();
 
     canvas.addEventListener("click", () => {
-      if (!this.isLocked) canvas.requestPointerLock();
+      // El navegador rechaza el pedido si se hace justo después de salir con Esc (~1 s de espera).
+      if (!this.isLocked) Promise.resolve(canvas.requestPointerLock()).catch(() => {});
     });
     document.addEventListener("pointerlockchange", () => this.onLockChange(this.isLocked));
     document.addEventListener("mousemove", (e) => this.look(e));

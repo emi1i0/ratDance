@@ -69,3 +69,7 @@ Boot ──► Menu ──► Playing ◄──► Paused
 
 Implementación: un `state` string en `Game` + un `switch` en `update` y en las transiciones.
 Sin clases por estado hasta que haga falta.
+
+**Estado actual (hito 4):** existen `paused` (también cubre el inicio, "Click para jugar"),
+`playing` y `gameOver`. El daño al jugador lo devuelve `RatSystem.update()` y lo aplica `Game`;
+el bus de eventos se agrega recién cuando haya un segundo interesado (HUD/audio).

@@ -62,6 +62,11 @@ export class WeaponSystem {
     }
   }
 
+  clear(): void {
+    for (const p of this.projectiles) p.mesh.dispose();
+    this.projectiles.length = 0;
+  }
+
   private fire(): void {
     const camera = this.player.camera;
     // getDirection: convierte un eje local a mundo. En Babylon "adelante" es +Z (mano izquierda).
