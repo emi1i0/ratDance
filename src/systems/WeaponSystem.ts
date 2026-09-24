@@ -6,13 +6,14 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
 import type { HitEffects } from "./HitEffects";
 import type { PlayerView } from "./PlayerView";
-import { RAT_HIT_HEIGHT, RAT_HIT_RADIUS, type RatSystem } from "./RatSystem";
+import { hitHeight, hitRadius, type Rat, type RatSystem } from "./RatSystem";
 
 // Arma placeholder.
 const PROJECTILE_SPEED = 30; // unidades por segundo
 const PROJECTILE_LIFETIME = 2; // segundos
 const PROJECTILE_DIAMETER = 0.15;
 const MUZZLE_OFFSET = 0.5; // distancia delante de la cámara donde nace el proyectil
+const DAMAGE = 1;
 
 interface Projectile {
   mesh: Mesh;
@@ -48,15 +49,15 @@ export class WeaponSystem {
       p.mesh.position.addInPlace(p.velocity.scale(dt));
       p.age += dt;
 
-      let hit = false;
+      // Si el tramo cruza varias ratas, le pega a la primera en el camino (menor t).
+      let hit: { rat: Rat; point: Vector3; t: number } | null = null;
       for (const rat of this.rats.rats) {
-        const point = segmentHitPoint(from, p.mesh.position, rat.position);
-        if (point) {
-          this.effects.hit(point);
-          this.rats.kill(rat);
-          hit = true;
-          break;
-        }
+        const h = segmentHit(from, p.mesh.position, rat);
+        if (h && (!hit || h.t < hit.t)) hit = { rat, ...h };
+      }
+      if (hit) {
+        const killed = this.rats.damage(hit.rat, DAMAGE);
+        this.effects.hit(hit.point, killed);
       }
       if (hit || p.age > PROJECTILE_LIFETIME || p.mesh.position.y < 0) this.remove(i);
     }
@@ -85,10 +86,11 @@ export class WeaponSystem {
 
 /**
  * Si el tramo recorrido por el proyectil en este frame toca el cilindro de la rata, devuelve
- * el punto de impacto; si no, null. Revisar el tramo (y no solo la posición final) evita que
- * un proyectil rápido la atraviese.
+ * el punto de impacto y su posición en el tramo (t de 0 a 1); si no, null. Revisar el tramo
+ * (y no solo la posición final) evita que un proyectil rápido la atraviese.
  */
-function segmentHitPoint(from: Vector3, to: Vector3, ratPos: Vector3): Vector3 | null {
+function segmentHit(from: Vector3, to: Vector3, rat: Rat): { point: Vector3; t: number } | null {
+  const ratPos = rat.sprite.position;
   // Punto del tramo más cercano al eje vertical de la rata (calculado en el plano XZ).
   const dx = to.x - from.x;
   const dz = to.z - from.z;
@@ -97,6 +99,6 @@ function segmentHitPoint(from: Vector3, to: Vector3, ratPos: Vector3): Vector3 |
   const closest = Vector3.Lerp(from, to, t);
 
   const horizontal = Math.hypot(closest.x - ratPos.x, closest.z - ratPos.z);
-  const inside = horizontal <= RAT_HIT_RADIUS && closest.y >= 0 && closest.y <= RAT_HIT_HEIGHT;
-  return inside ? closest : null;
+  const inside = horizontal <= hitRadius(rat) && closest.y >= 0 && closest.y <= hitHeight(rat);
+  return inside ? { point: closest, t } : null;
 }

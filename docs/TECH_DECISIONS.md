@@ -45,6 +45,8 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
 
 ## Persistencia
 - **`localStorage` con clave versionada** — solo guardamos queso y desbloqueos; no justifica backend.
+- **Opciones en `localStorage` (`ratdance.settings.v1`)** — si el storage falla (modo privado),
+  se usan valores por defecto y el juego sigue andando.
 
 ## Calidad
 - **`tsc --noEmit` como chequeo** — sin framework de tests por ahora; si la lógica de oleadas

@@ -1,18 +1,22 @@
+import { RAT_TYPES, type RatTypeId } from "../data/rats";
+import { WAVES } from "../data/waves";
 import type { RatSystem } from "./RatSystem";
 
-// Oleadas numeradas con fórmula simple (en el hito 6 pasan a datos en src/data/waves.ts).
 const BREAK_TIME = 3; // segundos de respiro entre oleadas
 
-const ratsInWave = (wave: number) => 4 + wave * 3;
-const spawnInterval = (wave: number) => Math.max(0.4, 1.6 * 0.9 ** (wave - 1)); // segundos
+export const TOTAL_WAVES = WAVES.length;
 
 export class WaveSystem {
-  wave = 0;
-  private toSpawn = 0;
+  wave = 0; // 1-based; 0 = todavía no arrancó
+  private queue: RatTypeId[] = []; // ratas que faltan salir en esta oleada
   private spawnTimer = 0;
   private breakTimer = 0;
 
-  constructor(private rats: RatSystem, private onWaveStart: (wave: number) => void) {}
+  constructor(
+    private rats: RatSystem,
+    private onWaveStart: (wave: number, hasBoss: boolean) => void,
+    private onAllCleared: () => void,
+  ) {}
 
   update(dt: number): void {
     if (this.breakTimer > 0) {
@@ -21,15 +25,16 @@ export class WaveSystem {
       return;
     }
 
-    if (this.toSpawn > 0) {
+    if (this.queue.length > 0) {
       this.spawnTimer -= dt;
       if (this.spawnTimer <= 0) {
-        this.rats.spawn();
-        this.toSpawn--;
-        this.spawnTimer = spawnInterval(this.wave);
+        this.rats.spawn(RAT_TYPES[this.queue.pop()!]);
+        this.spawnTimer = WAVES[this.wave - 1].spawnInterval;
       }
     } else if (this.rats.rats.length === 0) {
-      this.breakTimer = BREAK_TIME; // oleada limpia
+      // Oleada limpia.
+      if (this.wave >= TOTAL_WAVES) this.onAllCleared();
+      else this.breakTimer = BREAK_TIME;
     }
   }
 
@@ -40,8 +45,21 @@ export class WaveSystem {
 
   private startWave(wave: number): void {
     this.wave = wave;
-    this.toSpawn = ratsInWave(wave);
+    const def = WAVES[wave - 1];
+    this.queue = [];
+    for (const [id, count] of Object.entries(def.rats) as [RatTypeId, number][]) {
+      for (let i = 0; i < count; i++) this.queue.push(id);
+    }
+    shuffle(this.queue);
     this.spawnTimer = 0;
-    this.onWaveStart(wave);
+    this.onWaveStart(wave, this.queue.some((id) => RAT_TYPES[id].boss));
+  }
+}
+
+/** Fisher-Yates: mezcla el array en el lugar. */
+function shuffle<T>(items: T[]): void {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
   }
 }

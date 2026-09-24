@@ -30,7 +30,7 @@ export class Hud {
   }
 
   /** Se llama cada frame; solo toca el DOM cuando algo cambió. */
-  update(health: number, maxHealth: number, wave: number, money: number): void {
+  update(health: number, maxHealth: number, wave: number, totalWaves: number, money: number): void {
     const hp = Math.max(0, Math.ceil(health));
     if (hp !== this.last.health) {
       const width = `${(hp / maxHealth) * 100}%`;
@@ -41,7 +41,7 @@ export class Hud {
       this.last.health = hp;
     }
     if (wave !== this.last.wave) {
-      this.waveText.textContent = `Oleada ${wave}`;
+      this.waveText.textContent = `Oleada ${wave}/${totalWaves}`;
       this.last.wave = wave;
     }
     if (money !== this.last.money) {
@@ -56,8 +56,8 @@ export class Hud {
     this.root.classList.add("hurt");
   }
 
-  showWaveBanner(wave: number): void {
-    this.banner.textContent = `Oleada ${wave}`;
+  showWaveBanner(wave: number, hasBoss: boolean): void {
+    this.banner.innerHTML = `Oleada ${wave}` + (hasBoss ? `<small>Viene la jefa</small>` : "");
     // Reiniciar la animación CSS: sacar la clase, forzar reflow y volver a ponerla.
     this.banner.classList.remove("show");
     void this.banner.offsetWidth;

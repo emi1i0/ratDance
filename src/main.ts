@@ -18,6 +18,7 @@ const game = new Game(scene, canvas, {
   damage: document.getElementById("damage") as HTMLDivElement,
   hitmarker: document.getElementById("hitmarker") as HTMLDivElement,
   hud: document.getElementById("hud") as HTMLDivElement,
+  settings: document.getElementById("settings") as HTMLDivElement,
 });
 
 engine.runRenderLoop(() => {

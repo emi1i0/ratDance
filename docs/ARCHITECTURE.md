@@ -22,6 +22,7 @@ src/
   ui/
     hud.ts           # overlay HTML/CSS: vida, oleada, queso
     screens.ts       # menú, elección de perk, game over, tienda (HTML)
+    settings.ts      # panel de opciones (sensibilidad) + guardado en localStorage
   data/
     characters.ts    # stats de personajes
     weapons.ts       # stats de armas
@@ -70,6 +71,7 @@ Boot ──► Menu ──► Playing ◄──► Paused
 Implementación: un `state` string en `Game` + un `switch` en `update` y en las transiciones.
 Sin clases por estado hasta que haga falta.
 
-**Estado actual (hito 4):** existen `paused` (también cubre el inicio, "Click para jugar"),
-`playing` y `gameOver`. El daño al jugador lo devuelve `RatSystem.update()` y lo aplica `Game`;
+**Estado actual (hito 6):** existen `paused` (también cubre el inicio, "Click para jugar"),
+`playing` y `gameOver` (cubre derrota y victoria; el overlay cambia). Ratas y oleadas ya salen
+de `src/data/rats.ts` y `src/data/waves.ts` (valores placeholder). El daño al jugador lo devuelve `RatSystem.update()` y lo aplica `Game`;
 el bus de eventos se agrega recién cuando haya un segundo interesado (HUD/audio).

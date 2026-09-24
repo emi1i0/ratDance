@@ -5,7 +5,8 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 
-const SPARK_COUNT = 10;
+const SPARK_COUNT_KILL = 10;
+const SPARK_COUNT_HIT = 3; // impacto que no mata: chispazo chico
 const SPARK_SIZE = 0.08;
 const SPARK_SPEED_MIN = 2;
 const SPARK_SPEED_MAX = 6;
@@ -29,8 +30,9 @@ export class HitEffects {
     this.material.disableLighting = true;
   }
 
-  hit(position: Vector3): void {
-    for (let i = 0; i < SPARK_COUNT; i++) {
+  hit(position: Vector3, killed: boolean): void {
+    const count = killed ? SPARK_COUNT_KILL : SPARK_COUNT_HIT;
+    for (let i = 0; i < count; i++) {
       const mesh = CreateBox("spark", { size: SPARK_SIZE }, this.scene);
       mesh.material = this.material;
       mesh.position = position.clone();

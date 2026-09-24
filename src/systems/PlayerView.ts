@@ -3,12 +3,13 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 
 const EYE_HEIGHT = 1.7;
-const MOUSE_SENSITIVITY = 0.002; // radianes por píxel
+const BASE_SENSITIVITY = 0.002; // radianes por píxel con sensibilidad 1x
 const MAX_PITCH = Math.PI / 2 - 0.05;
 
 /** Cámara en primera persona fija en el centro: solo gira con el mouse (pointer lock). */
 export class PlayerView {
   readonly camera: FreeCamera;
+  sensitivity = 1; // multiplicador elegido en Opciones
 
   constructor(scene: Scene, private canvas: HTMLCanvasElement, private onLockChange: (locked: boolean) => void) {
     // FreeCamera: cámara con posición + rotación (euler) libres, como una PerspectiveCamera.
@@ -32,8 +33,9 @@ export class PlayerView {
 
   private look(e: MouseEvent): void {
     if (!this.isLocked) return;
+    const k = BASE_SENSITIVITY * this.sensitivity;
     const rot = this.camera.rotation;
-    rot.y += e.movementX * MOUSE_SENSITIVITY;
-    rot.x = Math.min(MAX_PITCH, Math.max(-MAX_PITCH, rot.x + e.movementY * MOUSE_SENSITIVITY));
+    rot.y += e.movementX * k;
+    rot.x = Math.min(MAX_PITCH, Math.max(-MAX_PITCH, rot.x + e.movementY * k));
   }
 }

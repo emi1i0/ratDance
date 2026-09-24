@@ -11,7 +11,7 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
   hay game over con reintento.
 - [x] **5. HUD** — vida, número de oleada y queso en overlay HTML (incluye oleadas numeradas
   con fórmula simple y $1 por rata).
-- [ ] **6. Oleadas y bosses por datos** — pasar la fórmula de oleadas a `waves.ts` y `rats.ts`; tipos de rata por color,
+- [x] **6. Oleadas y bosses por datos** — pasar la fórmula de oleadas a `waves.ts` y `rats.ts`; tipos de rata por color,
   tamaño y stats; boss en oleadas 5 y 10; victoria al final.
 - [ ] **7. Audio** — música del meme en loop, disparo y chillido al morir.
 - [ ] **8. Perks** — al terminar cada oleada, elegir 1 de 3 perks; se pierden al morir.
@@ -20,5 +20,8 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
 - [x] **10. Sprite del meme** — spritesheet real de la rata bailando, fiel al GIF.
 - [ ] **11. Look PS1 + alacena discoteca** — baja resolución, props low-poly (queso, comida
   mordida), luces de colores que cambian.
+
+Extras hechos fuera del plan:
+- [x] Menú de opciones en inicio/pausa: sensibilidad del mouse (se guarda en el navegador).
 
 Después: definir armas, personajes, ratas y perks reales (según diseño del usuario).
