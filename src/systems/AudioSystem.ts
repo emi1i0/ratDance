@@ -4,6 +4,13 @@
 const MUSIC_LEVEL = 0.6; // música un poco por debajo de los efectos
 const SFX_LEVEL = 1;
 
+/** Cómo tocar la música. Tiempos en segundos del archivo. */
+export interface MusicCues {
+  loopStart: number; // la intro suena una vez; después se repite loopStart → loopEnd
+  loopEnd: number;
+  skip?: [from: number, to: number]; // tramo de la intro a saltear (ej. un silencio de más)
+}
+
 export class AudioSystem {
   private ctx: AudioContext | null = null;
   private master!: GainNode;
@@ -11,7 +18,7 @@ export class AudioSystem {
   private sfxBus!: GainNode;
   private volume = 1;
   private music: AudioBuffer | null = null;
-  private musicLoop = { start: 0, end: 0 };
+  private musicCues: MusicCues = { loopStart: 0, loopEnd: 0 };
   private musicStarted = false;
 
   /**
@@ -41,15 +48,11 @@ export class AudioSystem {
     if (this.ctx) this.master.gain.setTargetAtTime(volume, this.ctx.currentTime, 0.02);
   }
 
-  /**
-   * Carga la música. `loopStart`/`loopEnd` en segundos: la intro suena una vez y después se
-   * repite el tramo entre ambos. loopEnd = 0 significa "hasta el final del archivo".
-   */
-  async loadMusic(url: string, loopStart = 0, loopEnd = 0): Promise<void> {
+  async loadMusic(url: string, cues: MusicCues): Promise<void> {
     const data = await (await fetch(url)).arrayBuffer();
     // decodeAudioData necesita un contexto; uno offline alcanza y no requiere interacción.
     this.music = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(data);
-    this.musicLoop = { start: loopStart, end: loopEnd || this.music.duration };
+    this.musicCues = cues;
     this.startMusicIfReady();
   }
 
@@ -115,13 +118,29 @@ export class AudioSystem {
 
   private startMusicIfReady(): void {
     if (!this.ctx || !this.music || this.musicStarted) return;
-    const source = this.ctx.createBufferSource();
-    source.buffer = this.music;
-    source.loop = true;
-    source.loopStart = this.musicLoop.start;
-    source.loopEnd = this.musicLoop.end;
-    source.connect(this.musicBus);
-    source.start();
+    const { loopStart, loopEnd, skip } = this.musicCues;
+    const t0 = this.ctx.currentTime + 0.05; // margen para programar todo con exactitud
+
+    // Con skip: una fuente toca el principio hasta skip[0] y la otra arranca en ese mismo
+    // instante desde skip[1]. Web Audio programa ambas con precisión de muestra.
+    let mainStart = t0;
+    let mainOffset = 0;
+    if (skip) {
+      const intro = this.ctx.createBufferSource();
+      intro.buffer = this.music;
+      intro.connect(this.musicBus);
+      intro.start(t0, 0, skip[0]);
+      mainStart = t0 + skip[0];
+      mainOffset = skip[1];
+    }
+
+    const main = this.ctx.createBufferSource();
+    main.buffer = this.music;
+    main.loop = true;
+    main.loopStart = loopStart;
+    main.loopEnd = loopEnd;
+    main.connect(this.musicBus);
+    main.start(mainStart, mainOffset);
     this.musicStarted = true;
   }
 }

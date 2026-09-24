@@ -4,18 +4,23 @@ import { RatSystem } from "../systems/RatSystem";
 import { TOTAL_WAVES, WaveSystem } from "../systems/WaveSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { HitEffects } from "../systems/HitEffects";
-import { AudioSystem } from "../systems/AudioSystem";
+import { AudioSystem, type MusicCues } from "../systems/AudioSystem";
 import { Hud } from "../ui/hud";
 import musicUrl from "../assets/audio/rat_dance_soundtrack.ogg";
 import { loadSettings, SettingsPanel } from "../ui/settings";
 
 const MAX_HEALTH = 100;
 
-// Loop de la música, medido analizando la forma de onda del archivo (44,1 kHz):
-// 0–3,3 s es la cuenta de entrada; después la pieza se repite cada 3.950.651 muestras.
-// Cualquier inicio posterior a la intro empalma igual; 4 s deja margen.
-const MUSIC_LOOP_START = 4;
-const MUSIC_LOOP_END = MUSIC_LOOP_START + 3950651 / 44100;
+// Música, medida analizando la forma de onda del archivo (44,1 kHz):
+// - 0–3,3 s es la cuenta de entrada; después la pieza se repite cada 3.950.651 muestras.
+//   Cualquier inicio de loop posterior a la intro empalma igual; 4 s deja margen.
+// - Entre el 1er y 2do golpe de la intro sobran 0,424 s de silencio (los golpes van cada
+//   0,5587 s): se saltea, cortando en cruces por cero para que no haga "clic".
+const MUSIC_CUES: MusicCues = {
+  loopStart: 4,
+  loopEnd: 4 + 3950651 / 44100,
+  skip: [0.91322, 1.33739],
+};
 const DAMAGE_FLASH_OPACITY = 0.6;
 const DAMAGE_FLASH_FADE = 2; // opacidad por segundo
 
@@ -52,7 +57,7 @@ export class Game {
     const settings = loadSettings();
     this.player.sensitivity = settings.sensitivity;
     this.audio.setVolume(settings.volume);
-    void this.audio.loadMusic(musicUrl, MUSIC_LOOP_START, MUSIC_LOOP_END);
+    void this.audio.loadMusic(musicUrl, MUSIC_CUES);
     new SettingsPanel(ui.settings, settings, (s) => {
       this.player.sensitivity = s.sensitivity;
       this.audio.setVolume(s.volume);
