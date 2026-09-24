@@ -13,7 +13,8 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
   con fórmula simple y $1 por rata).
 - [x] **6. Oleadas y bosses por datos** — pasar la fórmula de oleadas a `waves.ts` y `rats.ts`; tipos de rata por color,
   tamaño y stats; boss en oleadas 5 y 10; victoria al final.
-- [ ] **7. Audio** — música del meme en loop, disparo y chillido al morir.
+- [x] **7. Audio** — música del meme en loop (intro + loop sin cortes), disparo, impacto y
+  chillido al morir sintetizados; volumen en Opciones.
 - [ ] **8. Perks** — al terminar cada oleada, elegir 1 de 3 perks; se pierden al morir.
 - [ ] **9. Meta-progresión** — queso persistente en `localStorage`, tienda y selección de
   personaje/arma (placeholders).

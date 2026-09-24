@@ -4,6 +4,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
+import type { AudioSystem } from "./AudioSystem";
 import type { HitEffects } from "./HitEffects";
 import type { PlayerView } from "./PlayerView";
 import { hitHeight, hitRadius, type Rat, type RatSystem } from "./RatSystem";
@@ -30,6 +31,7 @@ export class WeaponSystem {
     private player: PlayerView,
     private rats: RatSystem,
     private effects: HitEffects,
+    private audio: AudioSystem,
     canvas: HTMLCanvasElement,
   ) {
     this.material = new StandardMaterial("projectileMat", scene);
@@ -58,6 +60,8 @@ export class WeaponSystem {
       if (hit) {
         const killed = this.rats.damage(hit.rat, DAMAGE);
         this.effects.hit(hit.point, killed);
+        if (killed) this.audio.squeak(hit.rat.type.size);
+        else this.audio.hit();
       }
       if (hit || p.age > PROJECTILE_LIFETIME || p.mesh.position.y < 0) this.remove(i);
     }
@@ -72,6 +76,7 @@ export class WeaponSystem {
     const camera = this.player.camera;
     // getDirection: convierte un eje local a mundo. En Babylon "adelante" es +Z (mano izquierda).
     const forward = camera.getDirection(Vector3.Forward());
+    this.audio.shoot();
     const mesh = CreateSphere("projectile", { diameter: PROJECTILE_DIAMETER, segments: 4 }, this.scene);
     mesh.material = this.material;
     mesh.position = camera.position.add(forward.scale(MUZZLE_OFFSET));

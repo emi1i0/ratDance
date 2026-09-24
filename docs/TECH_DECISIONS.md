@@ -40,8 +40,10 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
   que ciclan) solo en cartel de oleada, daño y game over. Respeta `prefers-reduced-motion`.
 
 ## Audio
-- **Motor de audio de Babylon (incluido en `@babylonjs/core`)** — sin dependencias extra;
-  se inicia después del primer click por la política de autoplay.
+- **Web Audio API directa (no el audio de Babylon)** — los efectos se sintetizan con
+  osciladores (sin archivos) y la música usa `loopStart`/`loopEnd` para sonar intro + loop
+  sin cortes; una capa de Babylon encima no aporta. Se inicia al capturar el mouse
+  (política de autoplay) y se suspende en pausa.
 
 ## Persistencia
 - **`localStorage` con clave versionada** — solo guardamos queso y desbloqueos; no justifica backend.

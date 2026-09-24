@@ -4,10 +4,18 @@ import { RatSystem } from "../systems/RatSystem";
 import { TOTAL_WAVES, WaveSystem } from "../systems/WaveSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { HitEffects } from "../systems/HitEffects";
+import { AudioSystem } from "../systems/AudioSystem";
 import { Hud } from "../ui/hud";
+import musicUrl from "../assets/audio/rat_dance_soundtrack.ogg";
 import { loadSettings, SettingsPanel } from "../ui/settings";
 
 const MAX_HEALTH = 100;
+
+// Loop de la música, medido analizando la forma de onda del archivo (44,1 kHz):
+// 0–3,3 s es la cuenta de entrada; después la pieza se repite cada 3.950.651 muestras.
+// Cualquier inicio posterior a la intro empalma igual; 4 s deja margen.
+const MUSIC_LOOP_START = 4;
+const MUSIC_LOOP_END = MUSIC_LOOP_START + 3950651 / 44100;
 const DAMAGE_FLASH_OPACITY = 0.6;
 const DAMAGE_FLASH_FADE = 2; // opacidad por segundo
 
@@ -35,6 +43,7 @@ export class Game {
   private waves: WaveSystem;
   private weapons: WeaponSystem;
   private effects: HitEffects;
+  private audio = new AudioSystem();
   private hud: Hud;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, private ui: GameUI) {
@@ -42,7 +51,12 @@ export class Game {
     this.player = new PlayerView(scene, canvas, (locked) => this.onLockChange(locked));
     const settings = loadSettings();
     this.player.sensitivity = settings.sensitivity;
-    new SettingsPanel(ui.settings, settings, (s) => (this.player.sensitivity = s.sensitivity));
+    this.audio.setVolume(settings.volume);
+    void this.audio.loadMusic(musicUrl, MUSIC_LOOP_START, MUSIC_LOOP_END);
+    new SettingsPanel(ui.settings, settings, (s) => {
+      this.player.sensitivity = s.sensitivity;
+      this.audio.setVolume(s.volume);
+    });
     this.rats = new RatSystem(scene);
     this.waves = new WaveSystem(
       this.rats,
@@ -50,7 +64,7 @@ export class Game {
       () => this.endGame(true),
     );
     this.effects = new HitEffects(scene, ui.hitmarker);
-    this.weapons = new WeaponSystem(scene, this.player, this.rats, this.effects, canvas);
+    this.weapons = new WeaponSystem(scene, this.player, this.rats, this.effects, this.audio, canvas);
     this.showOverlay("start", `<h1 class="sign">ratDance</h1><p class="hint">Click para jugar</p>`);
   }
 
@@ -79,10 +93,12 @@ export class Game {
       // wave === 0: primera partida, todavía no arrancó ninguna oleada.
       if (this.state === "gameOver" || this.waves.wave === 0) this.reset();
       this.state = "playing";
+      this.audio.resume();
       this.ui.overlay.classList.add("hidden");
       this.ui.settings.classList.add("hidden");
     } else if (this.state === "playing") {
       this.state = "paused";
+      this.audio.suspend();
       this.showOverlay("pause", `<h1 class="sign">Pausa</h1><p class="hint">Click para seguir</p>`);
     }
   }

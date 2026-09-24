@@ -5,57 +5,75 @@ const STORAGE_KEY = "ratdance.settings.v1";
 
 export interface Settings {
   sensitivity: number; // multiplicador de la sensibilidad base del mouse
+  volume: number; // 0 a 1
 }
 
-const DEFAULTS: Settings = { sensitivity: 1 };
-const SENSITIVITY_MIN = 0.2;
-const SENSITIVITY_MAX = 3;
-const SENSITIVITY_STEP = 0.1;
+interface SliderDef {
+  key: keyof Settings;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+  format: (value: number) => string;
+}
+
+const SLIDERS: SliderDef[] = [
+  {
+    key: "sensitivity",
+    label: "Sensibilidad del mouse",
+    min: 0.2,
+    max: 3,
+    step: 0.1,
+    default: 1,
+    format: (v) => `${v.toFixed(1)}x`,
+  },
+  { key: "volume", label: "Volumen", min: 0, max: 1, step: 0.05, default: 0.7, format: (v) => `${Math.round(v * 100)}%` },
+];
 
 export function loadSettings(): Settings {
+  let saved: Partial<Record<keyof Settings, unknown>> = {};
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as Partial<Settings>;
-    const sensitivity = Number(saved.sensitivity);
-    return {
-      sensitivity: Number.isFinite(sensitivity)
-        ? Math.min(SENSITIVITY_MAX, Math.max(SENSITIVITY_MIN, sensitivity))
-        : DEFAULTS.sensitivity,
-    };
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
   } catch {
-    return { ...DEFAULTS };
+    // Sin storage o JSON roto: valores por defecto.
   }
+  const settings = {} as Settings;
+  for (const s of SLIDERS) {
+    const value = Number(saved[s.key]);
+    settings[s.key] = Number.isFinite(value) ? Math.min(s.max, Math.max(s.min, value)) : s.default;
+  }
+  return settings;
 }
 
 function saveSettings(settings: Settings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
-    // Sin storage: la opción vale solo para esta sesión.
+    // Sin storage: las opciones valen solo para esta sesión.
   }
 }
 
 /** Panel de opciones (visible en inicio y pausa). Avisa cada cambio y lo guarda. */
 export class SettingsPanel {
   constructor(root: HTMLElement, settings: Settings, onChange: (settings: Settings) => void) {
-    root.innerHTML = `
-      <h2>Opciones</h2>
-      <label class="setting">
-        <span>Sensibilidad del mouse</span>
-        <input type="range" min="${SENSITIVITY_MIN}" max="${SENSITIVITY_MAX}" step="${SENSITIVITY_STEP}">
-        <output></output>
-      </label>`;
-    const slider = root.querySelector("input") as HTMLInputElement;
-    const value = root.querySelector("output") as HTMLOutputElement;
+    root.innerHTML = `<h2>Opciones</h2>`;
+    for (const s of SLIDERS) {
+      const row = document.createElement("label");
+      row.className = "setting";
+      row.innerHTML = `<span>${s.label}</span><input type="range" min="${s.min}" max="${s.max}" step="${s.step}"><output></output>`;
+      const slider = row.querySelector("input") as HTMLInputElement;
+      const output = row.querySelector("output") as HTMLOutputElement;
 
-    const show = () => (value.textContent = `${settings.sensitivity.toFixed(1)}x`);
-    slider.value = String(settings.sensitivity);
-    show();
-
-    slider.addEventListener("input", () => {
-      settings.sensitivity = Number(slider.value);
-      show();
-      onChange(settings);
-      saveSettings(settings);
-    });
+      slider.value = String(settings[s.key]);
+      output.textContent = s.format(settings[s.key]);
+      slider.addEventListener("input", () => {
+        settings[s.key] = Number(slider.value);
+        output.textContent = s.format(settings[s.key]);
+        onChange(settings);
+        saveSettings(settings);
+      });
+      root.append(row);
+    }
   }
 }

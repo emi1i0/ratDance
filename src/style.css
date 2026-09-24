@@ -330,10 +330,11 @@ body {
 }
 .setting {
   display: grid;
-  grid-template-columns: auto 180px 5ch;
+  grid-template-columns: 22ch 180px 5ch; /* ancho fijo: las filas quedan alineadas */
   align-items: center;
   gap: 16px;
 }
+.setting + .setting { margin-top: 12px; }
 .setting output {
   text-align: right;
   color: var(--cheese);
