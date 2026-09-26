@@ -24,5 +24,7 @@ Cada hito termina en algo jugable/visible en el navegador. Se trabaja de a uno.
 
 Extras hechos fuera del plan:
 - [x] Menú de opciones en inicio/pausa: sensibilidad del mouse (se guarda en el navegador).
+- [x] Menú inicial con botón "Jugar" y pantalla final con "Reintentar" / "Menú";
+  "Menú" también en la pausa para abandonar la partida; Opciones pasa a ser un botón.
 
 Después: definir armas, personajes, ratas y perks reales (según diseño del usuario).

@@ -257,7 +257,7 @@ body {
   100% { transform: translate(0, 0); }
 }
 
-/* ---------- Overlay: inicio, pausa y game over ---------- */
+/* ---------- Overlay: menú, pausa y game over ---------- */
 
 #overlay {
   position: fixed;
@@ -272,9 +272,10 @@ body {
   font: 400 14px/1.6 var(--font-hud);
   text-shadow: 2px 2px 0 var(--ink);
   background: color-mix(in srgb, var(--plum) 70%, transparent);
-  pointer-events: none;
 }
 #overlay.hidden { display: none; }
+/* Con Opciones abierto queda solo el fondo del overlay, y el panel encima. */
+#overlay.options-open > * { visibility: hidden; }
 #overlay h1 {
   margin: 0;
   word-spacing: 0.35em;
@@ -291,6 +292,42 @@ body {
   34%  { opacity: 0.2; }
   38%  { opacity: 1; filter: hue-rotate(200deg); }
   70%  { filter: hue-rotate(280deg); transform: rotate(2deg) translateX(-3px); }
+}
+
+/* Botones: bloques de queso con sombra dura; al pasar el mouse, neón de discoteca. */
+.menu {
+  display: flex;
+  gap: 20px;
+}
+.menu button {
+  padding: 14px 22px;
+  font: 400 16px/1 var(--font-hud);
+  color: var(--ink);
+  background: var(--cheese);
+  border: 3px solid var(--ink);
+  box-shadow: var(--hard-shadow);
+  cursor: pointer;
+}
+.menu button:hover,
+.menu button:focus-visible {
+  background: var(--rat-pink);
+  outline: none;
+  box-shadow: -4px 0 var(--disco-magenta), 4px 4px 0 var(--disco-cyan);
+}
+.menu button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+.menu button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: var(--cheese);
+  box-shadow: var(--hard-shadow);
+  transform: none;
+}
+.controls {
+  font-size: 10px;
+  color: var(--rat-pink);
 }
 
 .stats {
@@ -310,12 +347,12 @@ body {
 
 /* ---------- Opciones (inicio y pausa) ---------- */
 
-/* El overlay deja pasar los clicks al canvas (para capturar el mouse); este panel no. */
+/* Sub-pantalla de menú y pausa: panel centrado encima del overlay. */
 #settings {
   position: fixed;
   left: 50%;
-  bottom: 14%;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   color: #fff;
   font: 400 12px/1.6 var(--font-hud);
   text-shadow: 2px 2px 0 var(--ink);
@@ -335,6 +372,10 @@ body {
   gap: 16px;
 }
 .setting + .setting { margin-top: 12px; }
+#settings .menu {
+  justify-content: center;
+  margin-top: 20px;
+}
 .setting output {
   text-align: right;
   color: var(--cheese);

@@ -54,7 +54,7 @@ function saveSettings(settings: Settings): void {
   }
 }
 
-/** Panel de opciones (visible en inicio y pausa). Avisa cada cambio y lo guarda. */
+/** Panel de opciones (se abre desde el menú y la pausa). Avisa cada cambio y lo guarda. */
 export class SettingsPanel {
   constructor(root: HTMLElement, settings: Settings, onChange: (settings: Settings) => void) {
     root.innerHTML = `<h2>Opciones</h2>`;

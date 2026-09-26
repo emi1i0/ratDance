@@ -19,16 +19,18 @@ export class PlayerView {
     // Sin attachControl: el jugador no se mueve y la mirada la manejamos a mano.
     this.camera.inputs.clear();
 
-    canvas.addEventListener("click", () => {
-      // El navegador rechaza el pedido si se hace justo después de salir con Esc (~1 s de espera).
-      if (!this.isLocked) Promise.resolve(canvas.requestPointerLock()).catch(() => {});
-    });
     document.addEventListener("pointerlockchange", () => this.onLockChange(this.isLocked));
     document.addEventListener("mousemove", (e) => this.look(e));
   }
 
   get isLocked(): boolean {
     return document.pointerLockElement === this.canvas;
+  }
+
+  /** Captura el mouse. Tiene que llamarse desde un click (el navegador lo exige); lo usan los botones del overlay. */
+  lock(): void {
+    // El navegador rechaza el pedido si se hace justo después de salir con Esc (~1 s de espera).
+    if (!this.isLocked) Promise.resolve(this.canvas.requestPointerLock()).catch(() => {});
   }
 
   private look(e: MouseEvent): void {
