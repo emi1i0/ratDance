@@ -3,6 +3,13 @@
 
 const MUSIC_LEVEL = 0.6; // música un poco por debajo de los efectos
 const SFX_LEVEL = 1;
+// Enmascaramiento en el game over: la música queda "ahogada" (sin agudos) y más baja.
+const MASKED_CUTOFF = 350; // Hz del filtro pasa-bajos
+const MASKED_LEVEL = 0.25; // fracción de MUSIC_LEVEL
+const OPEN_CUTOFF = 20000; // filtro abierto: no se nota
+const GAME_OVER_NOTE_GAP = 0.28; // segundos entre notas del trombón
+// El daño es continuo (cada frame mientras te muerden): el sonido se repite como mucho así.
+const DAMAGE_SOUND_COOLDOWN = 0.4; // segundos
 
 /** Cómo tocar la música. Tiempos en segundos del archivo. */
 export interface MusicCues {
@@ -11,15 +18,31 @@ export interface MusicCues {
   skip?: [from: number, to: number]; // tramo de la intro a saltear (ej. un silencio de más)
 }
 
+/** Efecto en archivo: se toca solo el tramo útil (muchos archivos traen silencio de más). */
+export interface SampleCue {
+  url: string;
+  start: number; // segundos
+  duration: number;
+}
+
+/** Efecto que se usa como instrumento: se sabe en qué frecuencia suena para afinarlo. */
+export interface InstrumentCue extends SampleCue {
+  pitch: number; // Hz
+}
+
 export class AudioSystem {
   private ctx: AudioContext | null = null;
   private master!: GainNode;
   private musicBus!: GainNode;
+  private musicFilter!: BiquadFilterNode;
   private sfxBus!: GainNode;
   private volume = 1;
   private music: AudioBuffer | null = null;
   private musicCues: MusicCues = { loopStart: 0, loopEnd: 0 };
   private musicStarted = false;
+  private damageSound: { buffer: AudioBuffer; cue: SampleCue } | null = null;
+  private gameOverSound: { buffer: AudioBuffer; cue: InstrumentCue } | null = null;
+  private nextDamageSoundAt = 0;
 
   /**
    * Crea o reanuda el contexto. El navegador solo permite sonar después de una interacción
@@ -31,7 +54,14 @@ export class AudioSystem {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.volume;
       this.master.connect(this.ctx.destination);
-      this.musicBus = this.bus(MUSIC_LEVEL);
+      // Música → filtro pasa-bajos → master. El filtro queda abierto salvo en el game over.
+      this.musicFilter = this.ctx.createBiquadFilter();
+      this.musicFilter.type = "lowpass";
+      this.musicFilter.frequency.value = OPEN_CUTOFF;
+      this.musicFilter.connect(this.master);
+      this.musicBus = this.ctx.createGain();
+      this.musicBus.gain.value = MUSIC_LEVEL;
+      this.musicBus.connect(this.musicFilter);
       this.sfxBus = this.bus(SFX_LEVEL);
     }
     void this.ctx.resume();
@@ -49,11 +79,76 @@ export class AudioSystem {
   }
 
   async loadMusic(url: string, cues: MusicCues): Promise<void> {
-    const data = await (await fetch(url)).arrayBuffer();
-    // decodeAudioData necesita un contexto; uno offline alcanza y no requiere interacción.
-    this.music = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(data);
+    this.music = await decode(url);
     this.musicCues = cues;
     this.startMusicIfReady();
+  }
+
+  async loadDamageSound(cue: SampleCue): Promise<void> {
+    this.damageSound = { buffer: await decode(cue.url), cue };
+  }
+
+  async loadGameOverSound(cue: InstrumentCue): Promise<void> {
+    this.gameOverSound = { buffer: await decode(cue.url), cue };
+  }
+
+  /** Se puede llamar cada frame mientras hay daño: suena como mucho cada DAMAGE_SOUND_COOLDOWN. */
+  damage(): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.damageSound || ctx.currentTime < this.nextDamageSoundAt) return;
+    this.nextDamageSoundAt = ctx.currentTime + DAMAGE_SOUND_COOLDOWN;
+    const { buffer, cue } = this.damageSound;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = jitter(0.08); // variación de tono para que no suene idéntico
+    source.connect(this.sfxBus);
+    source.start(ctx.currentTime, cue.start, cue.duration);
+  }
+
+  /** Game over: ahoga la música y toca el "trombón triste" por encima. */
+  gameOver(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    this.musicFilter.frequency.cancelScheduledValues(t);
+    this.musicFilter.frequency.setTargetAtTime(MASKED_CUTOFF, t, 0.08);
+    this.musicBus.gain.cancelScheduledValues(t);
+    this.musicBus.gain.setTargetAtTime(MUSIC_LEVEL * MASKED_LEVEL, t, 0.08);
+
+    // "Wah wah wah waaah" tocado con el sonido de game over como instrumento: cada nota es
+    // el mismo sonido a otra velocidad (más rápido = más agudo), medio tono más abajo cada vez.
+    if (!this.gameOverSound) return;
+    const { buffer, cue } = this.gameOverSound;
+    const notes = [698.46, 659.26, 622.25, 880]; // Fa5, Mi5, Re#5 y remate arriba en La5
+    notes.forEach((freq, i) => {
+      const start = t + 0.15 + i * GAME_OVER_NOTE_GAP;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.playbackRate.value = freq / cue.pitch;
+      if (i === notes.length - 1) {
+        // Vibrato en la última nota: oscila el "detune" (en cents) del sonido.
+        const lfo = ctx.createOscillator();
+        const depth = ctx.createGain();
+        lfo.frequency.value = 6;
+        depth.gain.value = 45;
+        lfo.connect(depth).connect(source.detune);
+        lfo.start(start);
+        lfo.stop(start + cue.duration * 1.2);
+      }
+      source.connect(this.sfxBus);
+      source.start(start, cue.start, cue.duration);
+    });
+  }
+
+  /** Vuelve la música a la normalidad (al reintentar o ir al menú). */
+  unmask(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    this.musicFilter.frequency.cancelScheduledValues(t);
+    this.musicFilter.frequency.setTargetAtTime(OPEN_CUTOFF, t, 0.15);
+    this.musicBus.gain.cancelScheduledValues(t);
+    this.musicBus.gain.setTargetAtTime(MUSIC_LEVEL, t, 0.15);
   }
 
   shoot(): void {
@@ -143,6 +238,13 @@ export class AudioSystem {
     main.start(mainStart, mainOffset);
     this.musicStarted = true;
   }
+}
+
+/** Descarga y decodifica un archivo de audio. */
+async function decode(url: string): Promise<AudioBuffer> {
+  const data = await (await fetch(url)).arrayBuffer();
+  // decodeAudioData necesita un contexto; uno offline alcanza y no requiere interacción.
+  return new OfflineAudioContext(2, 1, 44100).decodeAudioData(data);
 }
 
 /** Envolvente de volumen: sube en `attack` segundos y se apaga en `decay`. */

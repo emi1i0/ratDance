@@ -18,17 +18,19 @@ src/
     RatSystem.ts     # sprites de ratas, movimiento hacia el jugador, vida
     WeaponSystem.ts  # disparo y proyectiles, colisión proyectil↔rata
     PerkSystem.ts    # perks activos de la partida y sus modificadores
-    AudioSystem.ts   # música en loop + efectos
+    AudioSystem.ts   # música (intro + loop) + efectos sintetizados
+    HitEffects.ts    # chispas en el mundo + hitmarker al impactar
   ui/
     hud.ts           # overlay HTML/CSS: vida, oleada, queso
     screens.ts       # menú, elección de perk, game over, tienda (HTML)
-    settings.ts      # panel de opciones (sensibilidad) + guardado en localStorage
+    settings.ts      # panel de opciones (sensibilidad, volumen) + guardado en localStorage
   data/
     characters.ts    # stats de personajes
     weapons.ts       # stats de armas
     rats.ts          # tipos de rata (color, tamaño, vida, velocidad, daño, recompensa)
     perks.ts         # definiciones de perks
     waves.ts         # composición de cada oleada
+    audio.ts         # archivos de audio y sus marcas (loop de la música, tramo útil de cada efecto)
   save/
     storage.ts       # queso y desbloqueos en localStorage (con versión)
   assets/            # spritesheets, texturas, audio (importados desde el código → URL con hash)
@@ -71,7 +73,10 @@ Boot ──► Menu ──► Playing ◄──► Paused
 Implementación: un `state` string en `Game` + un `switch` en `update` y en las transiciones.
 Sin clases por estado hasta que haga falta.
 
-**Estado actual (hito 6):** existen `menu` (pantalla inicial: "Jugar" y "Opciones"),
-`paused` ("Seguir", "Opciones" y "Menú"; Opciones es un panel que tapa el menú y vuelve con "Volver"), `playing` y `gameOver` (cubre derrota y victoria; botones "Reintentar" y "Menú"). Ratas y oleadas ya salen
+**Estado actual (hito 7):** existen `menu` (pantalla inicial: "Jugar" y "Opciones"; sin HUD),
+`paused` ("Seguir", "Opciones" y "Menú"; Opciones es un panel que tapa el menú y vuelve con
+"Volver"), `playing` y `gameOver` (cubre derrota y victoria; botones "Reintentar" y "Menú").
+"Menú" solo limpia la escena (`clearRun`); la partida arranca (`startRun`, oleada 1 con su
+cartel) al capturar el mouse desde `menu` o `gameOver`. Ratas y oleadas ya salen
 de `src/data/rats.ts` y `src/data/waves.ts` (valores placeholder). El daño al jugador lo devuelve `RatSystem.update()` y lo aplica `Game`;
 el bus de eventos se agrega recién cuando haya un segundo interesado (HUD/audio).

@@ -4,23 +4,13 @@ import { RatSystem } from "../systems/RatSystem";
 import { TOTAL_WAVES, WaveSystem } from "../systems/WaveSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { HitEffects } from "../systems/HitEffects";
-import { AudioSystem, type MusicCues } from "../systems/AudioSystem";
+import { AudioSystem } from "../systems/AudioSystem";
+import { DAMAGE_SOUND, GAME_OVER_SOUND, MUSIC } from "../data/audio";
 import { Hud } from "../ui/hud";
-import musicUrl from "../assets/audio/rat_dance_soundtrack.ogg";
 import { loadSettings, SettingsPanel } from "../ui/settings";
 
 const MAX_HEALTH = 100;
 
-// Música, medida analizando la forma de onda del archivo (44,1 kHz):
-// - 0–3,3 s es la cuenta de entrada; después la pieza se repite cada 3.950.651 muestras.
-//   Cualquier inicio de loop posterior a la intro empalma igual; 4 s deja margen.
-// - Entre el 1er y 2do golpe de la intro sobran 0,424 s de silencio (los golpes van cada
-//   0,5587 s): se saltea, cortando en cruces por cero para que no haga "clic".
-const MUSIC_CUES: MusicCues = {
-  loopStart: 4,
-  loopEnd: 4 + 3950651 / 44100,
-  skip: [0.91322, 1.33739],
-};
 const DAMAGE_FLASH_OPACITY = 0.6;
 const DAMAGE_FLASH_FADE = 2; // opacidad por segundo
 // Al morir el jugador suele seguir clickeando: los botones del final esperan un poco
@@ -60,7 +50,9 @@ export class Game {
     const settings = loadSettings();
     this.player.sensitivity = settings.sensitivity;
     this.audio.setVolume(settings.volume);
-    void this.audio.loadMusic(musicUrl, MUSIC_CUES);
+    void this.audio.loadMusic(MUSIC.url, MUSIC.cues);
+    void this.audio.loadDamageSound(DAMAGE_SOUND);
+    void this.audio.loadGameOverSound(GAME_OVER_SOUND);
     new SettingsPanel(ui.settings, settings, (s) => {
       this.player.sensitivity = s.sensitivity;
       this.audio.setVolume(s.volume);
@@ -98,6 +90,7 @@ export class Game {
       this.health -= damage;
       this.damageFlash = DAMAGE_FLASH_OPACITY;
       this.hud.hurt();
+      this.audio.damage();
       if (this.health <= 0) this.endGame(false);
     }
     this.hud.update(this.health, MAX_HEALTH, this.waves.wave, TOTAL_WAVES, this.rats.money);
@@ -105,7 +98,10 @@ export class Game {
 
   private onLockChange(locked: boolean): void {
     if (locked) {
-      if (this.state === "gameOver") this.reset();
+      // El HUD se muestra antes de arrancar: el cartel de la oleada 1 se anima dentro de él.
+      this.ui.hud.classList.remove("hidden");
+      // Desde el menú o el fin de partida arranca una partida nueva; desde la pausa, sigue.
+      if (this.state === "menu" || this.state === "gameOver") this.startRun();
       this.state = "playing";
       this.audio.resume();
       this.ui.overlay.classList.add("hidden");
@@ -129,6 +125,7 @@ export class Game {
     if (this.state === "gameOver") return;
     this.state = "gameOver";
     document.exitPointerLock();
+    if (!won) this.audio.gameOver(); // música ahogada + "trombón triste" con el sonido de game over
     const seconds = Math.floor(this.survived);
     this.showOverlay(
       won ? "victory" : "gameOver",
@@ -175,7 +172,7 @@ export class Game {
     } else if (action === "options") {
       this.showOptions(true);
     } else if (action === "menu") {
-      this.reset(); // limpia la escena de fondo
+      this.clearRun(); // limpia la escena de fondo sin arrancar oleadas
       this.showMenu();
     }
   }
@@ -187,18 +184,28 @@ export class Game {
     if (open) this.ui.settings.querySelector("input")?.focus();
   }
 
-  private reset(): void {
+  /** Deja la partida en cero: sin ratas, sin proyectiles, vida llena. */
+  private clearRun(): void {
+    this.audio.unmask();
     this.health = MAX_HEALTH;
     this.survived = 0;
     this.rats.clear();
-    this.waves.reset();
+    this.waves.clear();
     this.weapons.clear();
+  }
+
+  /** Partida nueva desde la oleada 1. Se llama al capturar el mouse, así el cartel se ve. */
+  private startRun(): void {
+    this.clearRun();
+    this.waves.start();
   }
 
   private showOverlay(kind: "menu" | "pause" | "gameOver" | "victory", html: string): void {
     this.ui.overlay.dataset.kind = kind; // el CSS cambia el estilo según el tipo
     this.ui.overlay.innerHTML = html;
     this.ui.overlay.classList.remove("hidden");
+    // En el menú no hay partida: el HUD se oculta para no mostrar valores viejos.
+    this.ui.hud.classList.toggle("hidden", kind === "menu");
     this.showOptions(false);
   }
 }

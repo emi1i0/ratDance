@@ -10,9 +10,10 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
 
 ## Física
 - **Havok diferido** — el jugador no se mueve y las ratas caminan en línea recta sobre un
-  piso plano; proyectil↔rata se resuelve con chequeo de distancia (esferas). Un motor de
-  física sería complejidad sin beneficio. Se reevalúa si aparecen armas que lo requieran
-  (rebotes, explosiones con empuje, ragdolls).
+  piso plano; proyectil↔rata se resuelve barriendo el tramo que recorrió el proyectil en el
+  frame contra un cilindro vertical por rata (sin tunneling). Un motor de física sería
+  complejidad sin beneficio. Se reevalúa si aparecen armas que lo requieran (rebotes,
+  explosiones con empuje, ragdolls).
 
 ## Render
 - **Ratas con `SpriteManager`** — dibuja miles de sprites animados en un solo draw call; el
@@ -23,7 +24,9 @@ Cada decisión con su motivo. Si cambia, se actualiza acá.
 - **Tinte y tamaño por sprite** — `sprite.color` y `sprite.size` dan variedad de ratas con un solo asset.
 - **Look PS1 por render a baja resolución** — `engine.setHardwareScalingLevel(n)` + texturas
   con filtrado `NEAREST`; auténtico y prácticamente gratis.
-- **Proyectiles como meshes simples reutilizados (pool)** — evita crear/destruir objetos por disparo.
+- **Proyectiles y chispas se crean y destruyen por uso** — lo más simple; con la cantidad
+  actual no se nota. Si el disparo automático o los perks (abanico, explosiones) lo hacen
+  pesar, se pasa a un pool.
 
 ## Cámara y control
 - **Cámara fija, solo rotación** — el diseño es estacionario; no hay movimiento del jugador.

@@ -107,6 +107,7 @@ body {
   text-shadow: 2px 2px 0 var(--ink);
 }
 #hud > * { position: absolute; }
+#hud.hidden { display: none; }
 
 .panel {
   background: color-mix(in srgb, var(--plum) 85%, transparent);

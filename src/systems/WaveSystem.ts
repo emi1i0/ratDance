@@ -38,9 +38,18 @@ export class WaveSystem {
     }
   }
 
-  reset(): void {
-    this.breakTimer = 0;
+  /** Arranca la partida desde la oleada 1 (muestra su cartel). */
+  start(): void {
+    this.clear();
     this.startWave(1);
+  }
+
+  /** Deja todo en cero sin arrancar nada (para volver al menú). */
+  clear(): void {
+    this.wave = 0;
+    this.queue = [];
+    this.spawnTimer = 0;
+    this.breakTimer = 0;
   }
 
   private startWave(wave: number): void {
